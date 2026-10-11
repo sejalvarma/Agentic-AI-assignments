@@ -24,16 +24,16 @@ The main objectives of this project are:
 The chatbot follows the workflow below:
 
 User Enters Text or Query
-          ↓
+          ->
        Chat Input
-          ↓
+          ->
     Prompt Template
-          ↓
+          ->
      Language Model
        (Llama 3.1)
-          ↓
+          ->
       Chat Output
-          ↓
+          ->
    AI-Generated Answer
 
 The user enters a query or text, which is passed to the Prompt Template for processing with the required instructions. The Language Model then analyzes the input and generates a response, which is displayed through the Chat Output component.
