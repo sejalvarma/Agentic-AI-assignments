@@ -1,0 +1,201 @@
+{
+  "name": "Financial Market Intelligence System",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "lastNode"
+        }
+      },
+      "id": "68542ddf-6888-4078-ab95-abf8ffd68323",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        112
+      ],
+      "webhookId": "07100cde-00c2-4bbc-af5a-a7d069f1623a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are the Financial Research Agent (Agent 1) in a sequential two-agent system. Your only job is to RESEARCH; another agent will analyze your output.\n\nSteps:\n1. Read the user's question and identify the company/companies, industry, financial topic and research requirements.\n2. Use the tavily_search tool (several searches if needed) to collect public web information on: company performance and financial results, business developments, industry trends, competitors, and relevant risks, as appropriate to the question.\n3. Return a structured research brief with these sections:\n   - Research Scope (companies, industry, topic, timeframe)\n   - Reported Facts (figures and events stated by sources; each with source URL and publication date if available)\n   - Estimates and Forecasts (analyst or company projections; label clearly as estimates, with source)\n   - Opinions and Commentary (label clearly as opinion, with source)\n   - Industry Trends and Competitors\n   - Risks Mentioned in Sources\n   - Gaps and Conflicts (anything you could not find or where sources disagree)\n   - Source List (URL, title, publication date or \"date not available\")\n\nRules: never invent figures, dates or URLs. Only use information returned by the search tool. Clearly separate facts from estimates and opinions. Do not give investment advice or write the final report.",
+          "maxIterations": 8,
+          "enableStreaming": false
+        }
+      },
+      "id": "55a3c1c5-8d56-4f5c-a849-d70dffaf978d",
+      "name": "Agent 1 - Financial Research Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "183518a6-f9a1-4867-9562-3b5cc6ac0a17",
+      "name": "OpenAI Chat Model (Research)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        336
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "include": "all"
+      },
+      "id": "021cde85-24ef-44fa-bf03-271929ed7bf5",
+      "name": "tavily_search",
+      "type": "@n8n/mcp-registry.tavily",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        336
+      ],
+      "credentials": {
+        "tavilyMcpOAuth2Api": {
+          "id": "rTsQ8O7dFQqKrPuz",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=ORIGINAL USER QUESTION:\n{{ $(\"Chat Trigger\").item.json.chatInput }}\n\nRESEARCH OUTPUT FROM AGENT 1:\n{{ $json.output }}",
+        "options": {
+          "systemMessage": "You are the Financial Analysis Agent (Agent 2) in a sequential two-agent system. You receive the user's original question and the complete research output from Agent 1. You have no search tools; rely only on the supplied research.\n\nProduce a structured Financial Intelligence Report with these sections:\n1. Executive Summary\n2. Key Findings\n3. Analysis (strengths, weaknesses, opportunities, risks and important developments where relevant; include a side-by-side comparison if multiple companies are requested)\n4. Supporting Evidence (cite the supplied source URLs)\n5. Risks\n6. Missing or Conflicting Information\n7. Conclusions\n\nRules: do not invent facts, financial figures or statistics. Where evidence is missing or conflicting, say so explicitly. Distinguish reported facts from estimates and opinions. Do not give investment recommendations or promise returns; end with a short note that this is informational, not financial advice.",
+          "enableStreaming": false
+        }
+      },
+      "id": "647d40e8-b537-488b-bab5-a6588b8bddbe",
+      "name": "Agent 2 - Financial Analysis Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        576,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "b3fe06da-fc2a-4ed0-be79-ecfee9ac9240",
+      "name": "OpenAI Chat Model (Analysis)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        336
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Agent 1 - Financial Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 1 - Financial Research Agent": {
+      "main": [
+        [
+          {
+            "node": "Agent 2 - Financial Analysis Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model (Research)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent 1 - Financial Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "tavily_search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent 1 - Financial Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model (Analysis)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent 2 - Financial Analysis Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7128c31a-eec3-468f-938d-ae0702f47656",
+  "meta": {
+    "instanceId": "fe325fa718323f340343a32fcdf7754a4644262413f61385bb09e94c838306d7"
+  },
+  "nodeGroups": [],
+  "id": "DbUBKmWBRLm6vcPo",
+  "tags": []
+}
