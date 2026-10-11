@@ -1,0 +1,196 @@
+{
+  "name": "HR Policy Assistant – Document Ingestion",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "069aa7f1-43b5-47aa-b9f0-8c7033b7548f",
+      "name": "Run Ingestion",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1I7F39ZVAY8b45rrYb40wfsj8ImmlXFaM",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "id": "47a1e8f6-1d47-4832-be75-1951d9a16c4a",
+      "name": "Read HR Policy from Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        224,
+        208
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "mqI5fUsGda5DrdP0",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hr_policy_leave_attendance"
+        },
+        "clearStore": true
+      },
+      "id": "419e1c4c-8c5c-46cd-ab3a-f84104b06f61",
+      "name": "Store HR Policy Vectors",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c553987c-238c-4bbb-b5ec-28b047c8e889",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        432
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "binaryMode": "specificField",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "HR Leave and Attendance Policy"
+              }
+            ]
+          }
+        }
+      },
+      "id": "c16b26b4-2ab8-4ca8-89da-a333c7266f4e",
+      "name": "Load Policy Document",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "id": "0744daa0-681c-45a5-9632-9e5f087e6e1f",
+      "name": "Split into Chunks",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        592,
+        640
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Ingestion": {
+      "main": [
+        [
+          {
+            "node": "Read HR Policy from Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read HR Policy from Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Store HR Policy Vectors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Store HR Policy Vectors",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Policy Document": {
+      "ai_document": [
+        [
+          {
+            "node": "Store HR Policy Vectors",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split into Chunks": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Load Policy Document",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "41ce6b85-2a76-49cd-9e6b-ebe0c7dc750d",
+  "meta": {
+    "instanceId": "fe325fa718323f340343a32fcdf7754a4644262413f61385bb09e94c838306d7"
+  },
+  "nodeGroups": [],
+  "id": "d10WG995JJpliSgZ",
+  "tags": []
+}

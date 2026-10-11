@@ -1,0 +1,164 @@
+{
+  "name": "HR Policy Assistant – Leave and Attendance",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "streaming"
+        }
+      },
+      "id": "04763c7e-53bd-4d5d-bff9-011763fe0b4e",
+      "name": "Chat with HR Policy Assistant",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        208
+      ],
+      "webhookId": "02e7d483-4791-4b3c-aea5-7e077c83c758"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the HR Policy Assistant for Leave and Attendance.\n\nRules:\n1. For every user question about policy, FIRST call the search_hr_policy tool.\n2. Answer ONLY using information returned by the tool. Never use general knowledge, assumptions, or typical industry practice.\n3. Never invent or estimate leave limits, eligibility rules, approval requirements, notice periods, dates, or any other policy values. Only state numbers and rules that appear verbatim in the retrieved text.\n4. If the retrieved text does not contain the answer, reply exactly: \"I couldn't find this information in the provided HR policy.\" and nothing else.\n5. If only part of the question is answered by the policy, answer that part and state: \"I couldn't find this information in the provided HR policy.\" for the rest.\n6. Keep answers concise and quote or closely paraphrase the policy wording.\n7. For greetings or questions unrelated to HR policy, briefly say you can only answer questions about the HR Leave and Attendance policy.",
+          "forceToolCallOnFirstIteration": true
+        }
+      },
+      "id": "c723fa2f-41c6-4265-8d89-00b24eeea634",
+      "name": "HR Policy Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-5.4-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "3b0370eb-ce7e-41c3-a6a1-ee154a3523d2",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        432
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Searches the HR Leave and Attendance policy document. Call this for EVERY user question about leave, attendance, or HR policy before answering.",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "id",
+          "value": "hr_policy_leave_attendance"
+        },
+        "topK": 5
+      },
+      "id": "0ddfb99d-8f5d-4c80-9f08-6d9842444011",
+      "name": "search_hr_policy",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "47e5a46b-9115-40f5-a3f4-56b6715fca28",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        640
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "Gateway credits",
+          "__aiGatewayManaged": true
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat with HR Policy Assistant": {
+      "main": [
+        [
+          {
+            "node": "HR Policy Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "HR Policy Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_hr_policy": {
+      "ai_tool": [
+        [
+          {
+            "node": "HR Policy Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "search_hr_policy",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "50554d1b-961e-4a1a-b265-7e74d5a7f968",
+  "meta": {
+    "instanceId": "fe325fa718323f340343a32fcdf7754a4644262413f61385bb09e94c838306d7"
+  },
+  "nodeGroups": [],
+  "id": "qWcbThn7u0sRu3mB",
+  "tags": []
+}
